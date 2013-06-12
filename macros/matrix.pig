@@ -1,0 +1,52 @@
+/*
+ * All matrices are represented in Sparse COO format:
+ * {row: int, col: int, val: float}
+ *
+ * We use floats instead of doubles because the github recommender does not
+ * need numerical precision and it saves space when writing to disk inbetween MR jobs.
+ *
+ * If you plan to reuse these macros in a context where numerical precision is important,
+ * you should change them to use doubles. If numerical precision is extremely important,
+ * consider implementing the Kahan Summation Algorithm in a UDF.
+ */
+
+DEFINE MatrixProduct(A, B)
+returns product {
+    joined      =   JOIN $A BY col, $B BY row;
+    terms       =   FOREACH joined GENERATE
+                        $A::row AS row,
+                        $B::col AS col,
+                        $A::val * $B::val AS val;
+    by_cell     =   GROUP terms BY (row, col);
+    $product    =   FOREACH by_cell GENERATE
+                        group.row AS row, group.col AS col,
+                        (float) SUM(terms.val) AS val;
+};
+
+-- used to find shortest paths on a graph
+-- http://en.wikipedia.org/wiki/Min-plus_matrix_multiplication
+
+DEFINE MatrixMinPlusProduct(A, B)
+returns product {
+    joined      =   JOIN $A BY col, $B BY row;
+    terms       =   FOREACH joined GENERATE
+                        $A::row AS row,
+                        $B::col AS col,
+                        $A::val + $B::val AS val;
+    by_cell     =   GROUP terms BY (row, col);
+    $product    =   FOREACH by_cell GENERATE
+                        group.row AS row, group.col AS col,
+                        MIN(terms.val) AS val;
+};
+
+DEFINE MatrixSquared(M)
+returns m_sq {
+    copy    =   FOREACH $M GENERATE *;
+    $m_sq   =   MatrixProduct($M, copy);
+};
+
+DEFINE MatrixMinPlusSquared(M)
+returns m_sq {
+    copy    =   FOREACH $M GENERATE *;
+    $m_sq   =   MatrixMinPlusProduct($M, copy);  
+};
