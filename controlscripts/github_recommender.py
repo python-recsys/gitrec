@@ -21,14 +21,14 @@
 from org.apache.pig.scripting import Pig
 
 project_name           = "Github Recommender"
-#root_path              = # FILL THIS IN
-root_path              = "s3n://mortar-prod-sandbox/jpacker/github"
+root_path              = # FILL THIS IN
+#root_path              = "s3n://mortar-prod-sandbox/jpacker/github"
 
 # All paths below are relative to the root path
 
 # input path
-#raw_events             = # FILL THIS IN
-raw_events             = "raw_events/*/*/*/*"
+raw_events             = # FILL THIS IN
+#raw_events             = "raw_events/*/*/*/*"
 
 # intermediate output paths
 user_ids               = "user_ids"
@@ -44,8 +44,8 @@ user_general_recs      = "user_general_recs"
 user_gravatar_ids      = "user_gravatar_ids"
 
 # set this to ([# nodes you plan to use in your cluster] - 1) * 3
-#default_parallel       = # FILL THIS IN
-default_parallel       = 30
+default_parallel       = # FILL THIS IN
+#default_parallel       = 30
 
 class ControlscriptStep:
     def __init__(self, action, script, params):
@@ -98,6 +98,6 @@ steps = {
 }
 
 if __name__ == "__main__":
-    #steps["extract_events"].run()
-    #steps["gen_item_recs"].run()
+    steps["extract_events"].run()
+    steps["gen_item_recs"].run()
     steps["gen_user_recs"].run()

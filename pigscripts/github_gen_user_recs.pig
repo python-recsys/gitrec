@@ -1,5 +1,8 @@
 %default NUM_SPECIFIC_RECS 20
 %default NUM_GENERAL_RECS 20
+%default MIN_REC_ITEM_SCORE 2.71828 -- items for which the "importance score" field in item_metadata is less than this
+                                    -- will not be considered as recommendations. what to set this at depends
+                                    -- on how the scores are calculated, but this is a decent setting for our metric.
 SET default_parallel $DEFAULT_PARALLEL;
 
 REGISTER 's3n://mortar-prod-sandbox/jpacker/jar/datafu.jar';
@@ -35,8 +38,7 @@ item_metadata_2         =   FOREACH (JOIN item_metadata BY item, item_ids BY id)
                                 description AS description;
 
 -- never recommend repos without at least a few forks/stars
-item_scores_tmp         =   FOREACH item_metadata GENERATE item, score;
-item_scores             =   FILTER item_scores_tmp BY score > 2.71828;
+item_scores             =   FOREACH item_metadata GENERATE item, score;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -47,11 +49,15 @@ item_scores             =   FILTER item_scores_tmp BY score > 2.71828;
 -- we then generate recommendations by first filtering out obviously bad recommendations,
 -- and then taking the top N user-item pairs by affinity
 
-specific_affinities, general_affinities =   UserNeighborhoodAffinities(ui_affinities, item_nhoods, item_scores);
+specific_affinities, general_affinities =   UserNeighborhoodAffinities(ui_affinities,
+                                                                       item_nhoods,
+                                                                       item_scores,
+                                                                       $MIN_REC_ITEM_SCORE);
 
 specific_affinities_filt        =   FilterAffinitiesAlreadySeen(specific_affinities, ui_affinities);
 specific_recs_tmp               =   RecommendationsFromUIAffinities(specific_affinities_filt, $NUM_SPECIFIC_RECS);
 
+-- the extra filter is so that we don't show recommendations in general that are already in specific
 general_affinities_filt_tmp     =   FilterAffinitiesAlreadySeen(general_affinities, ui_affinities);
 general_affinities_filt         =   FilterRecommendationsAlreadySeen(general_affinities_filt_tmp, specific_recs_tmp);
 general_recs_tmp                =   RecommendationsFromUIAffinities(general_affinities_filt, $NUM_GENERAL_RECS);

@@ -1,3 +1,4 @@
 .mortar-local
 *.pyc
 logs
+.mortar-project-manifest
