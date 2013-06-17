@@ -78,8 +78,8 @@ events_renamed      =   FOREACH events_filtered GENERATE
                             type,
                             created_at AS timestamp;
 
--- not sure why this is necessary given the non-null checks above, but it is.
--- maybe there are event logs with empty-string repo owner fields?
+-- some logs seem to be malformed and have empty strings
+-- for the repository.owner field, so we filter those out
 events_2            =   FILTER events_renamed BY SUBSTRING(item, 0, 1) != '/';
 
 ----------------------------------------------------------------------------------------------------
