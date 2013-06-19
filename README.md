@@ -31,7 +31,7 @@ The first step in generating the neighborhoods is to reduce the user-repo affini
 
 The reason for choosing to estimate P(A | B) for the A->B edge instead of P(B | A) is a bit counter-intuitive, but this example should help explain: suppose P(twitter/bootstrap | random/repo) = 1, that is every user who likes random/repo also likes twitter/bootstrap. That means there should be random/repo -> twitter/bootstrap should a short distance; but twitter/bootstrap -> random/repo should definitely not be short, since the users they share in common are only a tiny percentage of all the users of twitter/bootstrap.
 
-To get distances for repos that are not directly connected, we follow shortest paths on the repo-repo distance graph up to a maximum path length of 4.
+To get distances for repos that are not directly connected, we follow shortest paths on the repo-repo distance graph up to a maximum path length of 4 (for future projects, we'll be using an implementation of Personalized Pagerank which I've written in the meantime instead).
 
 ## Choosing Recommendations For Each User
 
